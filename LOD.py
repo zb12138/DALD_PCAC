@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: LOD generation and inference
+Date: 2025-12-06 16:20:33
+'''
 from genlod.lod_warapper import genLod
 from networkTool import INTRA_LOD_START, MAX_SLICE_NUM, KNN, MAX_DIS, IS_LIDAR
 import numpy as np
@@ -85,6 +91,7 @@ def InferLodConstruct(base_layer, infer_layer, predictors, r_idx, gt_lodoerder_p
     else:
         return InferLodConstructObj(base_layer, infer_layer, predictors, K=KNN, bptt=bptt)
 
+
 def InferLodConstructLiDAR(base_layer, infer_layer, predictors, r_idx, gt_lodoerder_pt, K=KNN, bptt=1024):
     base_layer = np.c_[base_layer, np.zeros((base_layer.shape[0], 3))]
     infer_layer = np.c_[infer_layer, np.zeros((infer_layer.shape[0], 3))]
@@ -134,21 +141,16 @@ def InferLodConstructLiDAR(base_layer, infer_layer, predictors, r_idx, gt_lodoer
 def InferLodConstructObj(base_layer, infer_layer, predictors, K=KNN, bptt=1024):
     base_layer = np.c_[base_layer, np.zeros((base_layer.shape[0], 3))]
     infer_layer = np.c_[infer_layer, np.zeros((infer_layer.shape[0], 3))]
-    infer_padding, slice_ptnum = gen_block_by_kmeans(base_layer,
-                                                     infer_layer,
-                                                     max(1,len(infer_layer) //
-                                                     (MAX_SLICE_NUM * 4096)),
-                                                     SLICE=MAX_SLICE_NUM, bptt=bptt)
+    infer_padding, slice_ptnum = gen_block_by_kmeans(base_layer, infer_layer, max(1, len(infer_layer) // (MAX_SLICE_NUM * 4096)), SLICE=MAX_SLICE_NUM, bptt=bptt)
     p_m = infer_padding
     base_ptnum = len(base_layer)
     ptNum = p_m.shape[0]
     p_m[:, 6] = np.arange(ptNum)
     gloablpt = p_m[:len(base_layer), :]
     pred_nnid = np.zeros((ptNum, K), int)
-    pred_dis = np.ones((ptNum, K)) * MAX_DIS*2
+    pred_dis = np.ones((ptNum, K)) * MAX_DIS * 2
     pred_nnid[:base_ptnum, :3] = predictors[:base_ptnum, 2:5]
-    dis = ((p_m[predictors[:base_ptnum, 2:5], 0:3] -
-            np.expand_dims(p_m[:base_ptnum, 0:3], 1))**2).sum(2)
+    dis = ((p_m[predictors[:base_ptnum, 2:5], 0:3] - np.expand_dims(p_m[:base_ptnum, 0:3], 1))**2).sum(2)
     pred_dis[:base_ptnum, 0:3] = dis
 
     # search nearest neighbors in multi-thread
@@ -162,15 +164,13 @@ def InferLodConstructObj(base_layer, infer_layer, predictors, K=KNN, bptt=1024):
         return gloabl[min_nnIDx, 6], min_dis, idx_in_slice
 
     for i in range(MAX_SLICE_NUM):
-        idx_in_slice = slice(base_ptnum + i * slice_ptnum,
-                             base_ptnum + i * slice_ptnum + slice_ptnum)
+        idx_in_slice = slice(base_ptnum + i * slice_ptnum, base_ptnum + i * slice_ptnum + slice_ptnum)
         temp_fine = p_m[idx_in_slice]
         p_m[idx_in_slice, 7] = -i
         args.append((temp_fine, gloablpt, idx_in_slice))
         gloablpt = np.r_[gloablpt, temp_fine]
     for i in range(MAX_SLICE_NUM):
-        t = threading.Thread(
-            target=lambda: results.append(process_slice(*args[i])))
+        t = threading.Thread(target=lambda: results.append(process_slice(*args[i])))
         threads.append(t)
         t.start()
     for t in threads:
@@ -183,6 +183,7 @@ def InferLodConstructObj(base_layer, infer_layer, predictors, K=KNN, bptt=1024):
     p_m[:base_layer.shape[0], 7] = 1
     pred_dis = np.clip(pred_dis, 1, MAX_DIS)
     return p_m.astype(int), pred_nnid, pred_dis.astype(int)
+
 
 # enable this function to debug
 # def InferLodConstruct(base_layer, infer_layer, predictors, K=KNN, bptt=1024):

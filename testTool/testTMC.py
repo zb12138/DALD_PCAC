@@ -1,6 +1,10 @@
 '''
 Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: G-PCC test tool
+Date: 2025-12-06 16:20:33
 '''
+
 import re
 import glob
 
@@ -228,7 +232,7 @@ class TestFile():
             s = re.sub(r'array|\(|\)|\{|\}|\'', '', s)
             print(re.sub(r'(?<!\w)(\d+)(\.\d{0,3})\d*(?!\w)', r'\1\2', s))
 
-    def testByFun(self, encoding_fun, print=print, testGPCC=['enc'],lidar=False):
+    def testByFun(self, encoding_fun, print=print, testGPCC=['enc'], lidar=False):
         self._results = []
         pbar = tqdm(total=len(self.path))
         for i in self.fileIt():
@@ -239,7 +243,7 @@ class TestFile():
             res.update(encode_res)
             if 'enc' in testGPCC:
                 if lidar:
-                    anchor = i.compressByTmc(Config='testTool/gpcc_cw_lidar_angular_off.cfg',print_scree=False)
+                    anchor = i.compressByTmc(Config='testTool/gpcc_cw_lidar_angular_off.cfg', print_scree=False)
                 else:
                     anchor = i.compressByTmc(Config='testTool/gpcc_cw.cfg', print_scree=False)
                 res.update({'gpcc_time': anchor['en_atr_time'], 'gpcc_bpip': anchor['atr_bits'] / res['inPtNum'], 'gain': (encode_res['Bits'] - anchor['atr_bits']) / anchor['atr_bits'] * 100})
@@ -264,27 +268,25 @@ class TestFile():
 
 if __name__ == '__main__':
     ## for MPEGCAT1
-    # Test = TestFile('Data/MPEG/MPEGCat1A/*.ply',attributeType='rgb')
-    # table = Test.testByTMC(Config='testTool/gpcc_cw.cfg')
+    Test = TestFile('Data/MPEG/MPEGCat1A/*.ply',attributeType='rgb')
+    table = Test.testByTMC(Config='testTool/gpcc_cw.cfg')
 
     ## for semanticKITTI
-    # def className(path):
-    #     return int(path.split('sequences/')[1].split('/')[0])
-    # def filter_fun(path):
-    #     return className(path)>10
-    # def preProcessFun(pt: Cpt, vox=16):
-    #     pt.read()
-    #     pt.Quantization(qlevel=None, qs=400/(2**vox-1), offset=-200, atq=100)
-    #     seq = pt.className
-    #     pt.quan_path = f'semanticKITTI_vox{vox}/{seq}/'+os.path.basename(pt.path)[:-3]+'ply'
-    #     pointCloud.write_ply_data(pt.quan_path, pt.quan_pt, attributeName=['reflectance'], attriType=['uint16'])
-    # Test = TestFile(f'Data/semanticKITTI/dataset/sequences/*/velodyne/*.bin',attributeType='ref',filter_fun=filter_fun,classFun=className)
-    # table = Test.testByTMC(Config='testTool/gpcc_cw_lidar_angular_off.cfg',preProcess_fun=preProcessFun)
+    def className(path):
+        return int(path.split('sequences/')[1].split('/')[0])
+    def filter_fun(path):
+        return className(path)>10
+    def preProcessFun(pt: Cpt, vox=16):
+        pt.read()
+        pt.Quantization(qlevel=None, qs=400/(2**vox-1), offset=-200, atq=100)
+        seq = pt.className
+        pt.quan_path = f'semanticKITTI_vox{vox}/{seq}/'+os.path.basename(pt.path)[:-3]+'ply'
+        pointCloud.write_ply_data(pt.quan_path, pt.quan_pt, attributeName=['reflectance'], attriType=['uint16'])
+    Test = TestFile(f'Data/semanticKITTI/dataset/sequences/*/velodyne/*.bin',attributeType='ref',filter_fun=filter_fun,classFun=className)
+    table = Test.testByTMC(Config='testTool/gpcc_cw_lidar_angular_off.cfg',preProcess_fun=preProcessFun)
 
     ## for ford
-
     qs = 20
-
     def className(path):
         return int(path.split('Ford_')[1].split('_q')[0])
 

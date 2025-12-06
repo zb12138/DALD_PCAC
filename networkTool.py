@@ -1,9 +1,3 @@
-'''
-Author: chunyangf@qq.com
-LastEditors: fcy
-Description: Network parameters and helper functions
-FilePath: /compression/networkTool.py
-'''
 from glob import glob
 import torch
 import os
@@ -36,7 +30,7 @@ if IS_LIDAR:
 else:
     EXPNAME = 'Exp/obj'
     expComment = 'object point cloud compression'
-    CKPT_PATH = 'modelsave/RWTT_encoder_epoch_70035840.pth' 
+    CKPT_PATH = 'modelsave/RWTT_encoder_epoch_70035840.pth'
     # CKPT_PATH = 'modelsave/PCL_PCD_Sketchfab_encoder_epoch_70031360.pth'
     # CKPT_PATH = 'modelsave/CNeT_crossYUV_encoder_epoch_30093760.pth'
     MAX_SLICE_NUM = 16
@@ -96,6 +90,7 @@ def reload(checkpoint, modelDir='checkpoint', pthType='epoch', print=print, mult
 
 
 class CPrintl():
+
     def __init__(self, logName) -> None:
         self.log_file = logName
         if os.path.dirname(logName) != '' and not os.path.exists(os.path.dirname(logName)):

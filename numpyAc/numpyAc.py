@@ -1,26 +1,24 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: Arithmetic coding implementation using numpy backend
+Date: 2024-11-29 16:59:12
+'''
 import os
 import torch
 import numpy as np
 from torch.autograd.grad_mode import F
 from torch.utils.cpp_extension import load
 
-
 PRECISION = 16  # DO NOT EDIT!
-
 
 # Load on-the-fly with ninja.
 torchac_dir = os.path.dirname(os.path.realpath(__file__))
 backend_dir = os.path.join(torchac_dir, 'backend')
-numpyAc_backend = load(
-    name="numpyAc_backend",
-    sources=[os.path.join(backend_dir, "numpyAc_backend.cpp")],
-    verbose=False)
+numpyAc_backend = load(name="numpyAc_backend", sources=[os.path.join(backend_dir, "numpyAc_backend.cpp")], verbose=False)
 
 
-def _encode_float_cdf(cdf_float,
-                      sym,
-                      needs_normalization=True,
-                      check_input_bounds=False):
+def _encode_float_cdf(cdf_float, sym, needs_normalization=True, check_input_bounds=False):
     """Encode symbols `sym` with potentially unnormalized floating point CDF.
     Check the README for more details.
     :param cdf_float: CDF tensor, float32, on CPU. Shape (N1, ..., Nm, Lp).
@@ -33,11 +31,9 @@ def _encode_float_cdf(cdf_float,
     """
     if check_input_bounds:
         if cdf_float.min() < 0:
-            raise ValueError(
-                f'cdf_float.min() == {cdf_float.min()}, should be >=0.!')
+            raise ValueError(f'cdf_float.min() == {cdf_float.min()}, should be >=0.!')
         if cdf_float.max() > 1:
-            raise ValueError(
-                f'cdf_float.max() == {cdf_float.max()}, should be <=1.!')
+            raise ValueError(f'cdf_float.max() == {cdf_float.max()}, should be <=1.!')
         Lp = cdf_float.shape[-1]
         if sym.max() >= Lp - 1:
             raise ValueError(f'sym.max() == {sym.max()}, should be <=Lp - 1.!')
@@ -102,7 +98,7 @@ def _convert_to_int_and_normalize(cdf_float, needs_normalization):
     new_max_value = factor
     if needs_normalization:
         new_max_value = new_max_value - (Lp - 1)
-    cdf_float = cdf_float*(new_max_value)
+    cdf_float = cdf_float * (new_max_value)
     cdf_float = np.round(cdf_float)
     cdf = cdf_float.astype(np.int16)
     if needs_normalization:
@@ -114,12 +110,13 @@ def _convert_to_int_and_normalize(cdf_float, needs_normalization):
 def pdf_convert_to_cdf_and_normalize(pdf):
     assert pdf.ndim == 2
     cdfF = np.cumsum(pdf, axis=1)
-    cdfF = cdfF/cdfF[:, -1:]
+    cdfF = cdfF / cdfF[:, -1:]
     cdfF = np.hstack((np.zeros((pdf.shape[0], 1)), cdfF))
     return cdfF
 
 
 class arithmeticCoding():
+
     def __init__(self) -> None:
         self.binfile = None
         self.sysNum = None
@@ -136,8 +133,7 @@ class arithmeticCoding():
         # pdf = np.diff(cdfF)
         # print( -np.log2(pdf[range(0,self.sysNum),sym]).sum())
 
-        self.byte_stream = _encode_float_cdf(
-            cdfF, sym, check_input_bounds=True)
+        self.byte_stream = _encode_float_cdf(cdfF, sym, check_input_bounds=True)
         real_bits = len(self.byte_stream) * 8
         # # Write to a file.
         if binfile is not None:
@@ -162,8 +158,7 @@ class arithmeticDeCoding():
             with open(binfile, 'rb') as fin:
                 byte_stream = fin.read()
         self.byte_stream = byte_stream
-        self.decoder = numpyAc_backend.decode(
-            self.byte_stream, sysNum, symDim+1)
+        self.decoder = numpyAc_backend.decode(self.byte_stream, sysNum, symDim + 1)
 
     def decode(self, pdf):
         cdfF = pdf_convert_to_cdf_and_normalize(pdf)

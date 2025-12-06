@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: Entropy coder file
+Date: 2025-12-06 16:20:33
+'''
 # entropy encoder
 from resAc.ac_warpper import encode_res, decode_res
 import torch

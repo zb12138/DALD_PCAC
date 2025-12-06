@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: DALD-PCAC encoder file
+Date: 2025-12-06 18:02:40
+'''
 from networkTool import MAX_SLICE_NUM, ATTIBUTE_RES_RANGE, BPTT
 from Common import TContext, TPreprocess
 import time
@@ -143,8 +149,8 @@ class TEncTop(TEncCf):
         # stat
         assert self.encode_ptnum == self.m_pointCloudRecon.m_numPoint
         bpp = [(a, np.round(b / self.encode_ptnum, 4)) for a, b in self.encode_bitnum.items()]
-        bits =  sum(self.encode_bitnum.values())
-        bpip = bits/self.m_pointCloudRecon.m_numPoint
+        bits = sum(self.encode_bitnum.values())
+        bpip = bits / self.m_pointCloudRecon.m_numPoint
         result = {
             'File': self.m_pointCloudRecon.m_name,
             'inPtNum': self.m_pointCloudRecon.m_numPoint,
@@ -168,11 +174,11 @@ if __name__ == '__main__':
     model_path = encoder.m_deepEntroyModel.model_path
     printl('deep entropy model:', model_path)
     if IS_LIDAR:
-        test = TestFile(path='Data/MPEG/MPEGCat3Frame/Ford_02_q1mm/*10.ply',attributeType=ATTR_NAME)
+        test = TestFile(path='Data/MPEG/MPEGCat3Frame/Ford_02_q1mm/*10.ply', attributeType=ATTR_NAME)
     else:
-        test = TestFile(path='Dataset/8iVFBv2/*.ply',attributeType=ATTR_NAME)
+        test = TestFile(path='Dataset/8iVFBv2/*.ply', attributeType=ATTR_NAME)
 
-    result = test.testByFun(encoding_fun=lambda x: encoder.encode(x), print=printl,lidar=IS_LIDAR)
+    result = test.testByFun(encoding_fun=lambda x: encoder.encode(x), print=printl, lidar=IS_LIDAR)
     result.iloc[-1, 0] = model_path
     result.to_csv(EXPNAME + '/EncTop.csv')
     printl(result)

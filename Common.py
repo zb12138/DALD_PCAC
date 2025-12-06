@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: Common coder framework
+Date: 2025-12-06 18:01:18
+'''
 import numpy as np
 import testTool.ptIO as ptIO
 from testTool.ptfun import kdtree_partition, YCoCg2RGB, RGB2YCoCg
@@ -8,6 +14,7 @@ import os
 from LOD import levelOfDetailLayeringStructure, InferLodConstruct
 from copy import deepcopy
 import time
+
 
 class TPreprocess():
 
@@ -88,13 +95,13 @@ class TComPointCloud():
         self.m_name = os.path.basename(path)
         self.m_path = path
 
-    def saveToFile(self, path,asAscii=False):
+    def saveToFile(self, path, asAscii=False):
         if self.m_hasColors:
             assert self.m_attributeType in ['rgb', 'ref'], f'Error m_attributeType: {self.m_attributeType}'
             if self.m_attributeType == 'rgb':
-                ptIO.pcwrite(path, self.m_pos, self.m_color,asAscii=asAscii)
+                ptIO.pcwrite(path, self.m_pos, self.m_color, asAscii=asAscii)
             if self.m_attributeType == 'ref':
-                ptIO.pcwrite(path, self.m_pos, self.m_color[:, :1],asAscii=asAscii)
+                ptIO.pcwrite(path, self.m_pos, self.m_color[:, :1], asAscii=asAscii)
         else:
             ptIO.pcwrite(path, self.m_pos)
         print('save file ', path)
@@ -196,7 +203,7 @@ class TContext():
     def construct_context(self, slice_id, MAX_BATCH=48):
         idxs = np.where((self.p_m[:, 7] == -slice_id))[0]
         if self.m_pointCloudOrg.m_attributeType == 'ref':
-            kd_idx = kdtree_partition(np.c_[self.p_m[idxs, 0:3], idxs], max_num=1024 * 4,return_all=True)
+            kd_idx = kdtree_partition(np.c_[self.p_m[idxs, 0:3], idxs], max_num=1024 * 4, return_all=True)
             idxs = np.concatenate(kd_idx, 0)[:, -2]
             idxs = np.r_[idxs, np.zeros(int(np.ceil(len(idxs) / 1024) * 1024) - len(idxs), )].astype(int)
         total_Batch = len(idxs) // 1024

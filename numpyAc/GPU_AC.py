@@ -1,8 +1,16 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: GPU accelerated arithmetic coding wrapper, call gpuar/gpuac_backend.so
+Date: 2024-11-29 16:59:12
+All rights reserved.
+'''
 import ctypes
 import torch
-import subprocess
+import subprocess 
 import numpy as np
 import os
+
 file_dir = os.path.dirname(os.path.realpath(__file__))
 backen_path = os.path.join(file_dir, 'gpuar/gpuac_backend.so')
 if not os.path.exists(backen_path):
@@ -33,9 +41,7 @@ def BuildProbabilityRangeList(pdf):
     cdf_float = cdf_float.mul(new_max_value).round()
     cdf = cdf_float.to(dtype=torch.int16, non_blocking=True)
     r = torch.arange(end_of_symb + 1, dtype=torch.int16, device=cdf.device)
-    pro_start = torch.zeros((cdf.shape[0], 1),
-                            dtype=torch.int16,
-                            device=cdf.device)
+    pro_start = torch.zeros((cdf.shape[0], 1), dtype=torch.int16, device=cdf.device)
     cdfF = torch.hstack((pro_start, cdf))
     cdfF.add_(r)
     return cdfF.short().contiguous()
@@ -54,8 +60,7 @@ def encode(symbols, pdf, binPath, useGpu=True, interaction=False):
         cnt = cnt.cpu()
     symb_ptr = ctypes.cast(symbols.data_ptr(), ctypes.POINTER(ctypes.c_uint16))
     cnt_ptr = ctypes.cast(cnt.data_ptr(), ctypes.POINTER(ctypes.c_uint16))
-    bin_sz_bit = GPU_AC.encode(filebin, symb_ptr, cnt_ptr, cnt.shape[0],
-                               cnt.shape[1], useGpu, interaction)
+    bin_sz_bit = GPU_AC.encode(filebin, symb_ptr, cnt_ptr, cnt.shape[0], cnt.shape[1], useGpu, interaction)
     return bin_sz_bit
 
 
@@ -70,11 +75,9 @@ def decode(pdf, binPath, useGpu=True, interaction=False):
     else:
         symbols_dec = symbols_dec.cpu()
         cnt = cnt.cpu()
-    symb_dec_ptr = ctypes.cast(symbols_dec.data_ptr(),
-                               ctypes.POINTER(ctypes.c_uint16))
+    symb_dec_ptr = ctypes.cast(symbols_dec.data_ptr(), ctypes.POINTER(ctypes.c_uint16))
     cnt_ptr = ctypes.cast(cnt.data_ptr(), ctypes.POINTER(ctypes.c_uint16))
-    GPU_AC.decode(symb_dec_ptr, filebin, cnt_ptr, symb_num, cnt.shape[1],
-                  useGpu, interaction)
+    GPU_AC.decode(symb_dec_ptr, filebin, cnt_ptr, symb_num, cnt.shape[1], useGpu, interaction)
     return symbols_dec
 
 

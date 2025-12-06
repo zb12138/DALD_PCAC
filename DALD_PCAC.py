@@ -1,3 +1,10 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: DALD network
+Date: 2025-12-06 18:01:00
+All rights reserved.
+'''
 import numpy as np
 import torch
 import torch.nn as nn
@@ -208,7 +215,6 @@ class DALD_LiDAR(nn.Module):
         for i, q in enumerate(quan_inter):
             quan_result += (torch.sign(x) * (ax < q) * (ax >= quan_inter[i - 1])) * i
         return quan_result.long()
-
 
     def forward(self, data, targets):
         pi = data['geo'][:, :, 0:3].unsqueeze(2).to(device).float()

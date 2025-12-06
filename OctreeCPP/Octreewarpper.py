@@ -1,7 +1,9 @@
 '''
 Author: chunyangf@qq.com
-LastEditors: Please set LastEditors
-Description: 
+LastEditors: chunyang fu
+Description: octree generation wrapper, call Octree_python_lib.so
+Date: 2024-11-29 16:59:12
+All rights reserved.
 '''
 from ctypes import *
 from tkinter import TRUE
@@ -18,15 +20,14 @@ class CNode(Structure):
         ('parent', c_uint),
         ('oct', c_uint8),
         # ('pointIdx',c_void_p),
-        ('childPoint', c_void_p*8),
-        ('pos', c_uint*3)
+        ('childPoint', c_void_p * 8),
+        ('pos', c_uint * 3)
     ]
 
 
 c_double_p = POINTER(c_double)
 c_uint_p = POINTER(c_uint32)
-lib = cdll.LoadLibrary(os.path.dirname(os.path.abspath(
-    __file__))+'/Octree_python_lib.so')  # class level loading lib
+lib = cdll.LoadLibrary(os.path.dirname(os.path.abspath(__file__)) + '/Octree_python_lib.so')  # class level loading lib
 
 lib.GenOctreeInit.restype = c_void_p
 lib.GenOctreeInit.argtypes = [c_double_p, c_uint_p, c_int]
@@ -73,8 +74,7 @@ class COctree(object):
             self.color_p = color2.ctypes.data_as(c_uint_p)
         else:
             self.color_p = None
-        self.GenOctreeP = lib.GenOctreeInit(
-            data_p, self.color_p, data.shape[0])  # octree pointer to new vector
+        self.GenOctreeP = lib.GenOctreeInit(data_p, self.color_p, data.shape[0])  # octree pointer to new vector
         self.code = None
         self.Octree = None
         self.__octreeDepth__ = 0
@@ -93,7 +93,7 @@ class COctree(object):
             raise IndexError('Vector index out of range')
         if i < 0:
             i += L
-        return Level(lib.vector_get(self.Octree, c_int(i)), i, i == L-1)
+        return Level(lib.vector_get(self.Octree, c_int(i)), i, i == L - 1)
 
     def __repr__(self):
         return '[{}]'.format(', '.join(str(self[i]) for i in range(len(self))))
@@ -105,25 +105,23 @@ class COctree(object):
         self.nodeNum = self[-1][-1].nodeid
 
     def GenKparentSeq(self, K):
-        S1 = 6*K*self.nodeNum
-        S2 = 3*8*self.nodeNum
+        S1 = 6 * K * self.nodeNum
+        S2 = 3 * 8 * self.nodeNum
         lib.GenKparentSeqInterface.restype = None
-        lib.GenKparentSeqInterface.argtypes = [
-            c_void_p, c_int, POINTER(POINTER(c_int)), POINTER(POINTER(c_int))]
+        lib.GenKparentSeqInterface.argtypes = [c_void_p, c_int, POINTER(POINTER(c_int)), POINTER(POINTER(c_int))]
         p = POINTER(c_int)()
         p2 = POINTER(c_int)()
         lib.GenKparentSeqInterface(self.GenOctreeP, K, p, p2)
-        seqPos = np.array([p[x] for x in range(S1)]
-                          ).reshape(self.nodeNum, K, 6)
+        seqPos = np.array([p[x] for x in range(S1)]).reshape(self.nodeNum, K, 6)
         if self.color_p is not None:
-            seqAttri = np.array([p2[x] for x in range(S2)]
-                                ).reshape(self.nodeNum, 8, 3)
+            seqAttri = np.array([p2[x] for x in range(S2)]).reshape(self.nodeNum, 8, 3)
         else:
             seqAttri = None
         return seqPos, seqAttri
 
 
 class Vector():
+
     def __init__(self, Adr) -> None:
         self.nodeAdr = Adr
         self.Len = lib.int_size(Adr)
@@ -144,9 +142,10 @@ class Vector():
 
 
 class Level():
+
     def __init__(self, Adr, i, leaf) -> None:
         self.Adr = Adr
-        self.level = i+1
+        self.level = i + 1
         self.Len = lib.Nodes_size(self.Adr)
         self.nodeAdr = None
         self.leaf = leaf
@@ -168,6 +167,7 @@ class Level():
 
 
 class Node():
+
     def __init__(self, Adr, leaf, level, i) -> None:
         self.Adr = lib.Nodes_get(Adr, i, leaf)
         __content__ = self.Adr.contents
@@ -177,10 +177,9 @@ class Node():
         self.octant = __content__.octant
         self.pos = np.array(__content__.pos)
         if leaf:
-            self.childPoint = [Vector(__content__.childPoint[x])
-                               for x in range(8)]
+            self.childPoint = [Vector(__content__.childPoint[x]) for x in range(8)]
         else:
-            self.childPoint = [[]]*8
+            self.childPoint = [[]] * 8
         self.level = level
         self.isleaf = leaf
 

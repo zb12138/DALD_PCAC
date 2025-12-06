@@ -1,5 +1,9 @@
 '''
 Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: lod generation wrapper, call lod.so
+Date: 2025-12-06 16:20:33
+All rights reserved.
 '''
 from ctypes import *
 import numpy as np

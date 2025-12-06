@@ -156,13 +156,13 @@ def readFord(file_path):
     return output_file
 
 
-
 def pcshow(points, colors=None, normals=None):
     print('press H for more help.')
     print('press N for Turn on/off point cloud normal rendering.')
 
     point_cloud = o3dPointCloud(points, colors=colors, normals=normals)
     o3d.visualization.draw([point_cloud], non_blocking_and_return_uid=True)
+
 
 def o3dPointCloud(points, colors=None, normals=None):
     if points.shape[1] == 6:
@@ -180,8 +180,9 @@ def o3dPointCloud(points, colors=None, normals=None):
 def bin2decAry_numpy(x):
     x = np.asarray(x, dtype=np.float64)
     bits = x.shape[1]
-    mask = 2 ** np.arange(bits - 1, -1, -1).reshape(1, -1)
+    mask = 2**np.arange(bits - 1, -1, -1).reshape(1, -1)
     return (x * mask).sum(axis=1)
+
 
 def compute_morton_code_numpy(points):
     if len(points) == 0:
@@ -196,18 +197,19 @@ def compute_morton_code_numpy(points):
     for i in range(n):
         morton_code[:, 3 * i] = (z >> i) & 1
         morton_code[:, (3 * i + 1)] = (y >> i) & 1
-        morton_code[:, (3 * i + 2)] = (x >> i) & 1 
+        morton_code[:, (3 * i + 2)] = (x >> i) & 1
     morton_code = np.flip(morton_code, axis=1)
     return bin2decAry_numpy(morton_code)
 
+
 def sortByMorton(points, return_idx=False):
     data = points.copy()
-    offset = data[:,0:3].min(0)
-    data[:,0:3] -= offset
+    offset = data[:, 0:3].min(0)
+    data[:, 0:3] -= offset
     morton_codes = compute_morton_code_numpy(data.astype(np.int64))
     idx = np.argsort(morton_codes)
     if return_idx:
-        return points[idx],idx
+        return points[idx], idx
     else:
         return points[idx]
 
@@ -231,6 +233,7 @@ def write_ply_data(filename, points, attributeName=[], attriType=[]):
     typeList = {'uint16': "%d", 'float': "float", 'uchar': "%d"}
     np.savetxt(filename, points, newline="\n", fmt=["%f", "%f", "%f"] + [typeList[t] for t in attriType], header=''.join(plyheader), comments='')
     return
+
 
 def kdtree_partition(pc, max_num=100000, return_all=False):
     indx = []

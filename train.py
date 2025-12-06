@@ -1,3 +1,10 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: DALD-PCAC trainer file
+Date: 2025-12-06 17:59:37
+All rights reserved.
+'''
 import datetime
 import math
 import os

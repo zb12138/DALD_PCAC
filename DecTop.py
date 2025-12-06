@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: DALD-PCAC decoder file
+Date: 2025-12-06 18:02:14
+'''
 import os
 import time
 import torch
@@ -6,7 +12,6 @@ from networkTool import MAX_SLICE_NUM, ATTIBUTE_HALF_RANGE, ATTIBUTE_RES_RANGE, 
 from Common import TContext, TComPointCloud
 from EncTop import TEncTop
 from testTool.testTMC import run_cmd, TestFile
-
 
 
 class TDecTop(TEncTop):
@@ -157,14 +162,14 @@ class TDecTop(TEncTop):
         total_time = 0
         bits = 0
         try:
-            _,_,binfile = list(os.walk(self.m_bitstreamFolderName))[0]
+            _, _, binfile = list(os.walk(self.m_bitstreamFolderName))[0]
         except:
             assert False, f"bitstream folder {self.m_bitstreamFolderName} not found!"
         for f in binfile:
             if f.endswith('gpcc'):
                 bits += int(f.split('.')[1].split('gpcc')[0])
                 continue
-            bits += (os.path.getsize(os.path.join(self.m_bitstreamFolderName,f))*8)
+            bits += (os.path.getsize(os.path.join(self.m_bitstreamFolderName, f)) * 8)
         for i, m_pointCloudSlice in enumerate(self.getSlice(self.m_pointCloudDecodeGeo, self.max_pt_num_in_slice)):
             m_pointCloudSlice.m_attributeType = self.m_pointCloudDecode.m_attributeType
             self.m_encBac.bin_path = os.path.join(self.m_bitstreamFolderName, f'bk{i:03d}.')
@@ -174,7 +179,7 @@ class TDecTop(TEncTop):
         self.m_pointCloudDecode.deQuantization(self.m_quanParm)
         if self.m_colorSpace == "YUV":
             self.m_pointCloudDecode.convertYUVToRGB()
-        self.m_pointCloudDecode.saveToFile(self.m_reconFileName,asAscii=False)
+        self.m_pointCloudDecode.saveToFile(self.m_reconFileName, asAscii=False)
         return {'DeNet_time': net_elapsed, 'totalDetime': total_time, 'inPtNum': self.m_pointCloudDecode.m_numPoint, 'Bits': bits}
 
 
@@ -184,10 +189,10 @@ if __name__ == '__main__':
     encoder = TEncTop()
     decoder = TDecTop()
     if IS_LIDAR:
-        test = TestFile(path='Data/MPEG/MPEGCat3Frame/Ford_02_q1mm/*10.ply',attributeType=ATTR_NAME)
+        test = TestFile(path='Data/MPEG/MPEGCat3Frame/Ford_02_q1mm/*10.ply', attributeType=ATTR_NAME)
     else:
-        test = TestFile(path='Dataset/8iVFBv2/*.ply',attributeType=ATTR_NAME)
-    result = test.testByFun(encoding_fun=lambda x: dict(**(decoder.decode(x))), print=printl, testGPCC=['enc','dec'], lidar=IS_LIDAR)
+        test = TestFile(path='Dataset/8iVFBv2/*.ply', attributeType=ATTR_NAME)
+    result = test.testByFun(encoding_fun=lambda x: dict(**(decoder.decode(x))), print=printl, testGPCC=['enc', 'dec'], lidar=IS_LIDAR)
     result.iloc[-1, 0] = encoder.m_deepEntroyModel.model_path
     result.to_csv(EXPNAME + '/DecTop.csv')
     printl(result)

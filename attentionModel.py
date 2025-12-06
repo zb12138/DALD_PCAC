@@ -1,3 +1,9 @@
+'''
+Author: chunyangf@qq.com
+LastEditors: chunyang fu
+Description: Tranformer attention model
+Date: 2025-12-06 18:01:45
+'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
