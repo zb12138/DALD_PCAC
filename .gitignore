@@ -1,0 +1,12 @@
+*.pyc
+*.bak
+*.npz
+*.out
+*.ply
+*.bin
+*.mat
+/.*
+/log
+/Exp
+__pycache__
+Data
